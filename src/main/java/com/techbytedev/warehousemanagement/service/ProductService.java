@@ -12,6 +12,6 @@ public class ProductService {
     }
 
     public long countByProductId(Integer id) {
-        return productRepository.countByProductId(id);
+        return productRepository.countById(id);
     }
 }
