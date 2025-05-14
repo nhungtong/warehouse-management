@@ -2,6 +2,7 @@ package com.techbytedev.warehousemanagement.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.util.Date;
 @Table(name = "products")
 @Getter
 @Setter
+@NoArgsConstructor
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +25,7 @@ public class Product {
     private String name;
 
     @Column(nullable = false)
-    private String init;
+    private String unit;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "suppliers_id", referencedColumnName = "id", nullable = false)
@@ -36,4 +38,8 @@ public class Product {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    public Product(Supplier supplier) {
+        this.supplier = supplier;
+    }
 }

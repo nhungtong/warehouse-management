@@ -28,6 +28,5 @@ public class StockInForm {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
     private String note;
 }

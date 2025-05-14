@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "inventory")
 @Getter
@@ -23,4 +25,7 @@ public class Inventory {
 
     @Column(nullable = false)
     private Integer quantity = 0;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
 }
