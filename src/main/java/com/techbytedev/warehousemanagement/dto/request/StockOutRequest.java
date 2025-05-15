@@ -5,16 +5,25 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class StockInRequest {
-    private List<ProductInRequest> products;
+public class StockOutRequest {
+    private List<ProductOutRequest> products;
+    private String destination;
     private String username;
     private String note;
 
-    public List<ProductInRequest> getProducts() {
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    public List<ProductOutRequest> getProducts() {
         return products;
     }
 
-    public void setProducts(List<ProductInRequest> products) {
+    public void setProducts(List<ProductOutRequest> products) {
         this.products = products;
     }
 
