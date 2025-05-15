@@ -11,10 +11,12 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
+    
     public long countAllProducts() {
         return productRepository.count();
     }
 
 
 }
+
 
