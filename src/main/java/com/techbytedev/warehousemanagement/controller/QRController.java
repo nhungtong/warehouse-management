@@ -23,9 +23,8 @@ public class QRController {
     @PostMapping("/generate/{productCode}")
     public ResponseEntity<String> generateQRCode(@PathVariable String productCode) {
         String filePath = "uploads/qrcode/" + productCode + ".png";
-        String content = "http://localhost:8080/api/products/" + productCode;
         try {
-            QRCodeGeneratorUtil.generateQRCodeFile(content, filePath);
+            QRCodeGeneratorUtil.generateQRCodeFile(productCode, filePath);
             return ResponseEntity.ok("QR Code generated and saved to " + filePath);
         } catch (WriterException | IOException e) {
             e.printStackTrace();
