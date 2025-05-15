@@ -11,7 +11,8 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public long countByProductId(Integer id) {
-        return productRepository.countByProductId(id);
+    public long countAllProducts() {
+        return productRepository.count();
     }
+
 }
