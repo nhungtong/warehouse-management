@@ -9,4 +9,7 @@ import org.springframework.stereotype.Repository;
 public interface StockOutDetailRepository extends JpaRepository<StockOutDetail, Integer> {
     @Query("SELECT COALESCE(SUM(s.quantity), 0) FROM StockOutDetail s")
     Long getTotalQuantity();
+
 }
+
+

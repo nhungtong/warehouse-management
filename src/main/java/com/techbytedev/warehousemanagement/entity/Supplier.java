@@ -10,6 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+
 public class Supplier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,9 +19,11 @@ public class Supplier {
     @Column(nullable = false)
     private String name;
 
+
     private String contactInfo;
 
     public Supplier(String name) {
         this.name = name;
     }
+
 }

@@ -22,3 +22,4 @@ public interface InventoryRepository extends JpaRepository<Inventory, Integer> {
     List<Object[]> getInventoryCurrentMonth();
     Optional<Inventory> findByProductIdAndLocationId(Integer productId, Integer locationId);
 }
+

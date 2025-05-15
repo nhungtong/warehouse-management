@@ -10,3 +10,4 @@ public interface StockInDetailRepository extends JpaRepository<StockInDetail, In
     @Query("SELECT COALESCE(SUM(s.quantity), 0) FROM StockInDetail s")
     Long getTotalQuantity();
 }
+

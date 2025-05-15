@@ -1,3 +1,4 @@
+
 package com.techbytedev.warehousemanagement.entity;
 
 import jakarta.persistence.*;
@@ -28,5 +29,7 @@ public class StockInForm {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+
+    @Column(nullable = false)
     private String note;
 }
