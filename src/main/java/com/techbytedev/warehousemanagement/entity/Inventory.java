@@ -1,10 +1,13 @@
 package com.techbytedev.warehousemanagement.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+
+
 
 @Entity
 @Table(name = "inventory")
@@ -28,4 +31,5 @@ public class Inventory {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
 }
