@@ -1,11 +1,21 @@
 package com.techbytedev.warehousemanagement.service;
 
-import com.techbytedev.warehousemanagement.dto.request.ProductRequest;
-import com.techbytedev.warehousemanagement.entity.Location;
-import com.techbytedev.warehousemanagement.entity.Product;
-import com.techbytedev.warehousemanagement.entity.Supplier;
+import com.techbytedev.warehousemanagement.dto.request.ProductInRequest;
+import com.techbytedev.warehousemanagement.dto.request.StockInRequest;
+import com.techbytedev.warehousemanagement.entity.*;
 import com.techbytedev.warehousemanagement.repository.*;
+import com.techbytedev.warehousemanagement.util.QRCodeGeneratorUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 public class StockInService {
@@ -15,70 +25,114 @@ public class StockInService {
     private final LocationRepository locationRepository;
     private final StockInFormRepository stockInFormRepository;
     private final InventoryRepository inventoryRepository;
+    private final UserRepository userRepository;
 
-    public StockInService(StockInDetailRepository stockInDetailRepository, ProductRepository productRepository, SupplierRepository supplierRepository, LocationRepository locationRepository, StockInFormRepository stockInFormRepository, InventoryRepository inventoryRepository) {
+    public StockInService(StockInDetailRepository stockInDetailRepository, ProductRepository productRepository, SupplierRepository supplierRepository, LocationRepository locationRepository, StockInFormRepository stockInFormRepository, InventoryRepository inventoryRepository, UserRepository userRepository) {
         this.stockInDetailRepository = stockInDetailRepository;
         this.productRepository = productRepository;
         this.supplierRepository = supplierRepository;
         this.locationRepository = locationRepository;
         this.stockInFormRepository = stockInFormRepository;
         this.inventoryRepository = inventoryRepository;
+        this.userRepository = userRepository;
     }
 
     public long getTotalStockIn() {
         return stockInDetailRepository.getTotalQuantity();
     }
-    private ProductRequest getOrCreateProduct(String productCode, String productName, String unit, String supplierName, String locationName) {
-        Supplier supplier = getOrCreateSupplier(supplierName);
-        Product product = productRepository.findByProductCode(productCode)
-                .orElseGet(() -> {
-                    Product newProduct = new Product();
-                    newProduct.setProductCode(productCode);
-                    newProduct.setName(productName);
-                    newProduct.setUnit(unit);
-                    newProduct.setSupplier(supplier);
-                    productRepository.save(newProduct);
-                    return newProduct;
-                });
 
-        Supplier supplier1 = supplierRepository.findByName(supplierName)
-                .orElseGet(() -> {
-                    Supplier newSupplier = new Supplier();
-                    newSupplier.setName(supplierName);
-                    return supplierRepository.save(newSupplier);
-                });
+    private String saveInvoiceFile(MultipartFile file) {
+        try {
+            String uploadDir = "uploads/hoadon/";
+            String originalFilename = file.getOriginalFilename();
+            String fileName = UUID.randomUUID() + "_" + originalFilename;
 
-        Location location = locationRepository.findByName(locationName)
-                .orElseGet(() -> {
-                    Location newLocation = new Location();
-                    newLocation.setName(locationName);
-                    return locationRepository.save(newLocation);
-                });
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
 
-        ProductRequest productRequest = new ProductRequest();
-        productRequest.setProduct(product);
-        productRequest.setSupplier(supplier1);
-        productRequest.setLocation(location);
+            Path filePath = uploadPath.resolve(fileName);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        return productRequest;
+            return filePath.toString();
+        } catch (IOException e) {
+            throw new RuntimeException("Lỗi khi lưu file hóa đơn", e);
+        }
+    }
+    @Transactional
+    public StockInRequest handleStockIn(StockInRequest requestDTO, MultipartFile invoiceFile) {
+        User user = userRepository.findByUsername(requestDTO.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String invoiceFilePath = null;
+        if (invoiceFile != null && !invoiceFile.isEmpty()) {
+            invoiceFilePath = saveInvoiceFile(invoiceFile);
+        }
+
+        StockInForm stockInForm = new StockInForm();
+        stockInForm.setCreatedBy(user);
+        stockInForm.setCreatedAt(LocalDateTime.now());
+        stockInForm.setInvoiceFile(invoiceFilePath);
+        stockInForm.setNote(requestDTO.getNote() != null ? requestDTO.getNote() : "Nhập hàng");
+        stockInFormRepository.save(stockInForm);
+
+        for (ProductInRequest productRequest : requestDTO.getProducts()) {
+
+            Supplier supplier = supplierRepository.findByName(productRequest.getSupplierName())
+                    .orElseGet(() -> {
+                        Supplier newSupplier = new Supplier();
+                        newSupplier.setName(productRequest.getSupplierName());
+                        return supplierRepository.save(newSupplier);
+                    });
+
+            Product product = productRepository.findByProductCode(productRequest.getProductCode())
+                    .orElseGet(() -> {
+                        Product newProduct = new Product();
+                        newProduct.setProductCode(productRequest.getProductCode());
+                        newProduct.setName(productRequest.getProductName());
+                        newProduct.setUnit(productRequest.getUnit());
+                        newProduct.setSupplier(supplier);
+                        newProduct.setCreatedAt(LocalDateTime.now());
+                        Product savedProduct = productRepository.save(newProduct);
+                        try {
+                            String qrPath = "uploads/qrcode/" + savedProduct.getProductCode() + ".png";
+                            QRCodeGeneratorUtil.generateQRCodeFile(savedProduct.getProductCode(), qrPath);
+                        } catch (Exception e) {
+                            throw new RuntimeException("Lỗi khi tạo mã QR cho sản phẩm: " + savedProduct.getProductCode(), e);
+                        }
+
+                        return savedProduct;
+                    });
+
+            Location location = locationRepository.findByName(productRequest.getLocationName())
+                    .orElseGet(() -> {
+                        Location newLocation = new Location();
+                        newLocation.setName(productRequest.getLocationName());
+                        return locationRepository.save(newLocation);
+                    });
+
+            StockInDetail detail = new StockInDetail();
+            detail.setStockInForm(stockInForm);
+            detail.setProduct(product);
+            detail.setQuantity(productRequest.getQuantity());
+            detail.setUnitPrice(productRequest.getUnitPrice());
+            detail.setLocation(location);
+            stockInDetailRepository.save(detail);
+
+            Inventory inventory = inventoryRepository.findByProductIdAndLocationId(product.getId(), location.getId())
+                    .orElseGet(() -> {
+                        Inventory newInventory = new Inventory();
+                        newInventory.setProduct(product);
+                        newInventory.setLocation(location);
+                        newInventory.setQuantity(0);
+                        return newInventory;
+                    });
+            inventory.setQuantity(inventory.getQuantity() + productRequest.getQuantity());
+            inventoryRepository.save(inventory);
+        }
+
+        return requestDTO;
     }
 
-    private Supplier getOrCreateSupplier(String name) {
-        return supplierRepository.findByName(name)
-                .orElseGet(() -> supplierRepository.save(new Supplier(name)));
-    }
-    private Location getOrCreateLocation(String name) {
-        return locationRepository.findByName(name)
-                .orElseGet(() -> locationRepository.save(new Location(name)));
-    }
-        // hàm này cho phép tải file
-        // mã hàng dạng combobox
-        // đơn vị tính dạng combobox
-        // trường hợp mã hàng đã tồn tại, người dùng chỉ cần nhập mã là ra các trường còn lại
-        // trường hợp mã hàng mới, người dùng phải nhập tay toàn bộ riêng nhà cung cấp và vị trí lưu thì lấy tên, và cho phép người dùng nhập nếu là tên mới.
-        // lưu mã hàng mới vào bảng product khi là mã hàng mới.
-        // lưu location mới vào bảng location khi là tên vị trí mới
-        // lưu nhà cung cấp mới vào bảng suppliers khi là tên nhà cung cấp mới
-        // lưu dữ liệu vào bảng inventory, nếu id của hàng đã tồn tại trong bảng thì cộng dồn số lượng
-        // lưu dữ liệu vào bảng stockInForm và stocInDetails
 }

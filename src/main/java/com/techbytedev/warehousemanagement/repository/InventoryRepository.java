@@ -3,6 +3,7 @@ package com.techbytedev.warehousemanagement.repository;
 import com.techbytedev.warehousemanagement.entity.Inventory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,5 +22,9 @@ public interface InventoryRepository extends JpaRepository<Inventory, Integer> {
             "ORDER BY i.createdAt")
     List<Object[]> getInventoryCurrentMonth();
     Optional<Inventory> findByProductIdAndLocationId(Integer productId, Integer locationId);
+    Optional<Inventory> findByProductId(Integer productId);
+    @Query("SELECT SUM(i.quantity) FROM Inventory i WHERE i.product.id = :productId")
+    Integer sumQuantityByProductId(@Param("productId") Integer productId);
+
 }
 

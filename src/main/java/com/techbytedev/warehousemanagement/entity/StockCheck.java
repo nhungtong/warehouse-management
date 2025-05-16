@@ -19,6 +19,10 @@ public class StockCheck {
     @JoinColumn(name = "product_id", referencedColumnName = "id")
     private Product product;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "location_id", referencedColumnName = "id", nullable = false)
+    private Location location;
+
     @Column(nullable = false)
     private Integer actualQuantity;
 
@@ -31,4 +35,60 @@ public class StockCheck {
 
     @Column(nullable = false)
     private LocalDateTime createAt;
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public Integer getActualQuantity() {
+        return actualQuantity;
+    }
+
+    public void setActualQuantity(Integer actualQuantity) {
+        this.actualQuantity = actualQuantity;
+    }
+
+    public Integer getSystemQuantity() {
+        return systemQuantity;
+    }
+
+    public void setSystemQuantity(Integer systemQuantity) {
+        this.systemQuantity = systemQuantity;
+    }
+
+    public User getCheckedBy() {
+        return checkedBy;
+    }
+
+    public void setCheckedBy(User checkedBy) {
+        this.checkedBy = checkedBy;
+    }
+
+    public LocalDateTime getCreateAt() {
+        return createAt;
+    }
+
+    public void setCreateAt(LocalDateTime createAt) {
+        this.createAt = createAt;
+    }
 }
