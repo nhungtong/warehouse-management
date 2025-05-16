@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,10 +22,21 @@ public interface InventoryRepository extends JpaRepository<Inventory, Integer> {
             "GROUP BY i.createdAt " +
             "ORDER BY i.createdAt")
     List<Object[]> getInventoryCurrentMonth();
+
     Optional<Inventory> findByProductIdAndLocationId(Integer productId, Integer locationId);
     Optional<Inventory> findByProductId(Integer productId);
+
     @Query("SELECT SUM(i.quantity) FROM Inventory i WHERE i.product.id = :productId")
     Integer sumQuantityByProductId(@Param("productId") Integer productId);
 
-}
+    @Query("SELECT i.product.productCode, i.quantity " +
+           "FROM Inventory i " +
+           "WHERE i.createdAt < :startDate")
+    List<Object[]> getOpeningStock(LocalDateTime startDate);
 
+    // New method to find Inventory by productCode
+    @Query("SELECT i FROM Inventory i WHERE i.product.productCode = :productCode")
+    List<Inventory> findByProductCode(@Param("productCode") String productCode);
+    @Query("SELECT SUM(i.quantity) FROM Inventory i WHERE i.product.productCode = :productCode")
+    Integer sumQuantityByProductCode(@Param("productCode") String productCode);
+}
