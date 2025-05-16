@@ -18,4 +18,6 @@ public class InventoryService {
     public List<Object[]> getAllInvetoryCurrentMonth() {
         return inventoryRepository.getInventoryCurrentMonth();
     }
+
+    
 }
