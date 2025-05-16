@@ -1,6 +1,8 @@
 package com.techbytedev.warehousemanagement.repository;
 
 import com.techbytedev.warehousemanagement.entity.Inventory;
+import com.techbytedev.warehousemanagement.entity.Location;
+import com.techbytedev.warehousemanagement.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,6 +27,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Integer> {
     Optional<Inventory> findByProductId(Integer productId);
     @Query("SELECT SUM(i.quantity) FROM Inventory i WHERE i.product.id = :productId")
     Integer sumQuantityByProductId(@Param("productId") Integer productId);
-
+    Optional<Inventory> findByProductAndLocation(Product product, Location location);
+    Optional<Inventory> findByProduct(Product product);
 }
 

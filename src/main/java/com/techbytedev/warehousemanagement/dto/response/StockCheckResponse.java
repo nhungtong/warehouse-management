@@ -22,4 +22,60 @@ public class StockCheckResponse {
         this.difference = actualQuantity - systemQuantity;
         this.status = (difference == 0) ? "Trùng khớp" : "Phát hiện sai lệch";
     }
+
+    public String getProductCode() {
+        return productCode;
+    }
+
+    public void setProductCode(String productCode) {
+        this.productCode = productCode;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getLocationName() {
+        return locationName;
+    }
+
+    public void setLocationName(String locationName) {
+        this.locationName = locationName;
+    }
+
+    public Integer getSystemQuantity() {
+        return systemQuantity;
+    }
+
+    public void setSystemQuantity(Integer systemQuantity) {
+        this.systemQuantity = systemQuantity;
+    }
+
+    public Integer getActualQuantity() {
+        return actualQuantity;
+    }
+
+    public void setActualQuantity(Integer actualQuantity) {
+        this.actualQuantity = actualQuantity;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Integer getDifference() {
+        return difference;
+    }
+
+    public void setDifference(Integer difference) {
+        this.difference = difference;
+    }
 }

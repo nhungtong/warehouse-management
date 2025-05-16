@@ -33,7 +33,7 @@ public class StockCheck {
     @JoinColumn(name = "checked_by", referencedColumnName = "id")
     private User checkedBy;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "created_at")
     private LocalDateTime createAt;
 
     public Location getLocation() {

@@ -19,7 +19,7 @@ import com.google.zxing.WriterException;
 @RequestMapping("/api/qrcode")
 public class QRController {
 
-    // API tạo QR, lưu file và quét QR
+    // API tạo QR, lưu file
     @PostMapping("/generate/{productCode}")
     public ResponseEntity<String> generateQRCode(@PathVariable String productCode) {
         String filePath = "uploads/qrcode/" + productCode + ".png";
