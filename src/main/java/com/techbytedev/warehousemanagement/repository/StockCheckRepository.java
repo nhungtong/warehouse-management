@@ -20,7 +20,6 @@ public interface StockCheckRepository extends JpaRepository<StockCheck, Integer>
     @Query("SELECT sc FROM StockCheck sc WHERE sc.product.productCode = :productCode")
     List<StockCheck> findByProductCode(@Param("productCode") String productCode);
 
-    @Query("SELECT s FROM StockCheck s WHERE DATE(s.createAt) = CURRENT_DATE")
-    List<StockCheck> findAllByToday();
-
+    @Query(value = "SELECT * FROM stock_check s WHERE MONTH(s.create_at) = MONTH(CURRENT_DATE()) AND YEAR(s.create_at) = YEAR(CURRENT_DATE())", nativeQuery = true)
+    List<StockCheck> findAllByCurrentMonth();
 }

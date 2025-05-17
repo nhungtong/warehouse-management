@@ -2,10 +2,8 @@ package com.techbytedev.warehousemanagement.controller;
 
 import com.techbytedev.warehousemanagement.dto.request.StockCheckRequest;
 import com.techbytedev.warehousemanagement.dto.response.StockCheckResponse;
-import com.techbytedev.warehousemanagement.entity.User;
 import com.techbytedev.warehousemanagement.service.StockCheckService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,10 +34,10 @@ public class StockCheckController {
             return ResponseEntity.badRequest().body(null);
         }
     }
-    // Lấy danh sách kiểm kê trong ngày
-    @GetMapping("/today")
-    public ResponseEntity<List<StockCheckResponse>> getTodayStockChecks() {
-        List<StockCheckResponse> result = stockCheckService.getTodayStockChecks();
+    // Lấy danh sách kiểm kê trong tháng
+    @GetMapping("/month")
+    public ResponseEntity<List<StockCheckResponse>> getMonthStockChecks() {
+        List<StockCheckResponse> result = stockCheckService.getMonthStockChecks();
         return ResponseEntity.ok(result);
     }
 }

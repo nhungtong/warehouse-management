@@ -61,9 +61,9 @@ public class StockCheckService {
         return new StockCheckResponse(stockCheck);
     }
 
-    public List<StockCheckResponse> getTodayStockChecks() {
-        List<StockCheck> todayChecks = stockCheckRepository.findAllByToday();
-        return todayChecks.stream()
+    public List<StockCheckResponse> getMonthStockChecks() {
+        List<StockCheck> monthChecks = stockCheckRepository.findAllByCurrentMonth();
+        return monthChecks.stream()
                 .map(StockCheckResponse::new)
                 .collect(Collectors.toList());
     }
