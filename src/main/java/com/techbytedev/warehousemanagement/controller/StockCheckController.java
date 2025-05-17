@@ -42,7 +42,7 @@ public class StockCheckController {
     @GetMapping("/today")
     @PreAuthorize("@permissionChecker.hasPermission(authentication, '/api/stockcheck/**', 'GET')")
     public ResponseEntity<List<StockCheckResponse>> getTodayStockChecks() {
-        List<StockCheckResponse> result = stockCheckService.getTodayStockChecks();
+        List<StockCheckResponse> result = stockCheckService.getMonthStockChecks();
         return ResponseEntity.ok(result);
     }
 }
