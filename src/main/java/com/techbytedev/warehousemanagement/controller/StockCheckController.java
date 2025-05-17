@@ -39,7 +39,7 @@ public class StockCheckController {
         }
     }
     // Lấy danh sách kiểm kê trong ngày
-    @GetMapping("/today")
+    @GetMapping("/month")
     @PreAuthorize("@permissionChecker.hasPermission(authentication, '/api/stockcheck/**', 'GET')")
     public ResponseEntity<List<StockCheckResponse>> getTodayStockChecks() {
         List<StockCheckResponse> result = stockCheckService.getMonthStockChecks();
