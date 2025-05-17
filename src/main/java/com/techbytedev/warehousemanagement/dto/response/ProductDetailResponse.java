@@ -7,13 +7,23 @@ public class ProductDetailResponse {
     private String unit;
     private String supplierName;
     private String locationName;
+    private Integer quantity;
 
-    public ProductDetailResponse(String productCode, String productName, String unit, String supplierName, String locationName) {
+    public ProductDetailResponse(String productCode, String productName, String unit, String supplierName, String locationName, Integer quantity) {
         this.productCode = productCode;
         this.productName = productName;
         this.unit = unit;
         this.supplierName = supplierName;
         this.locationName = locationName;
+        this.quantity = quantity;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
     }
 
     public String getProductCode() {

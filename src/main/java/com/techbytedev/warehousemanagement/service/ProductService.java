@@ -38,12 +38,14 @@ public class ProductService {
 
         String locationName = inventory != null ? inventory.getLocation().getName() : "Không xác định";
 
+        Integer quantity = inventory != null ? inventory.getQuantity() : 0;
         return new ProductDetailResponse(
                 product.getProductCode(),
                 product.getName(),
                 product.getUnit(),
                 product.getSupplier() != null ? product.getSupplier().getName() : "Không có",
-                locationName
+                locationName,
+                quantity
         );
     }
 }
