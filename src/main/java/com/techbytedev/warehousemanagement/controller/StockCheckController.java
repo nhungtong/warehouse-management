@@ -5,9 +5,9 @@ import com.techbytedev.warehousemanagement.dto.response.StockCheckResponse;
 import com.techbytedev.warehousemanagement.entity.User;
 import com.techbytedev.warehousemanagement.service.StockCheckService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,11 +21,13 @@ public class StockCheckController {
         this.stockCheckService = stockCheckService;
     }
     @GetMapping("/late")
+    @PreAuthorize("@permissionChecker.hasPermission(authentication, '/api/stockcheck/**', 'GET')")
     public LocalDateTime getLate() {
         return stockCheckService.getMaxCreateAt();
     }
     // Thực hiện kiểm kê
     @PostMapping("/perform")
+    @PreAuthorize("@permissionChecker.hasPermission(authentication, '/api/stockcheck/**', 'POST')")
     public ResponseEntity<StockCheckResponse> performStockCheck(
             @RequestBody StockCheckRequest stockCheckRequest,
             @RequestParam String username) {
@@ -38,6 +40,7 @@ public class StockCheckController {
     }
     // Lấy danh sách kiểm kê trong ngày
     @GetMapping("/today")
+    @PreAuthorize("@permissionChecker.hasPermission(authentication, '/api/stockcheck/**', 'GET')")
     public ResponseEntity<List<StockCheckResponse>> getTodayStockChecks() {
         List<StockCheckResponse> result = stockCheckService.getTodayStockChecks();
         return ResponseEntity.ok(result);
