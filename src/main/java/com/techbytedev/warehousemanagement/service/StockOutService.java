@@ -34,6 +34,7 @@ public class StockOutService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         StockOutForm stockOutForm = new StockOutForm();
+        stockOutForm.setCode(request.getCode());
         stockOutForm.setDestination(request.getDestination());
         stockOutForm.setCreatedBy(user);
         stockOutForm.setCreatedAt(LocalDateTime.now());

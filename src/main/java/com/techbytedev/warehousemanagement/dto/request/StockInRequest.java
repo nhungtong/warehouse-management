@@ -6,9 +6,18 @@ import java.util.List;
 
 @Data
 public class StockInRequest {
+    private String code;
     private List<ProductInRequest> products;
     private String username;
     private String note;
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
 
     public List<ProductInRequest> getProducts() {
         return products;

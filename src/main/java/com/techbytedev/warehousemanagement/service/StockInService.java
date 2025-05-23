@@ -71,6 +71,7 @@ public class StockInService {
         }
 
         StockInForm stockInForm = new StockInForm();
+        stockInForm.setCode(requestDTO.getCode());
         stockInForm.setCreatedBy(user);
         stockInForm.setCreatedAt(LocalDateTime.now());
         stockInForm.setInvoiceFile(invoiceFilePath);
