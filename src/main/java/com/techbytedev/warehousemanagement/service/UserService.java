@@ -226,6 +226,7 @@ public class UserService {
         logger.debug("Found user: id={}", userId);
         return user;
     }
+    
 
     public UserResponse convertToResponse(User user) {
         UserResponse response = new UserResponse();
