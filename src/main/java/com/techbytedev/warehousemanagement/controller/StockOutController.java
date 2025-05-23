@@ -20,7 +20,7 @@ public class StockOutController {
     public long count() {
         return stockOutService.getTotalStockOut();
     }
-    @PostMapping()
+    @PostMapping("/")
     @PreAuthorize("@permissionChecker.hasPermission(authentication, '/api/stock-out/**', 'POST')")
     public ResponseEntity<?> handleStockOut(
             @RequestBody StockOutRequest request

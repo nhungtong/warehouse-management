@@ -8,6 +8,7 @@ import com.techbytedev.warehousemanagement.dto.request.AuthRequest;
 import com.techbytedev.warehousemanagement.dto.request.RegisterRequest;
 import com.techbytedev.warehousemanagement.dto.request.ResetPasswordRequest;
 import com.techbytedev.warehousemanagement.dto.response.AuthResponse;
+import com.techbytedev.warehousemanagement.dto.response.UserResponse;
 import com.techbytedev.warehousemanagement.service.AuthService;
 
 import jakarta.mail.MessagingException;
@@ -49,5 +50,10 @@ public class AuthController {
             @RequestParam String email,
             @RequestParam String fullName) {
         return ResponseEntity.ok(authService.googleLogin(email, fullName));
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<UserResponse> getProfile() {
+        return ResponseEntity.ok(authService.getProfile());
     }
 }
