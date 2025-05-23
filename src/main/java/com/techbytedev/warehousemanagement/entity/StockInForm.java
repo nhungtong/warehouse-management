@@ -16,6 +16,10 @@ public class StockInForm {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+
+    @Column(nullable = false, unique = true)
+    private String code;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "supplier_id", referencedColumnName = "id")
     private Supplier supplier;
@@ -32,6 +36,14 @@ public class StockInForm {
 
     @Column(nullable = false)
     private String note;
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
 
     public Integer getId() {
         return id;

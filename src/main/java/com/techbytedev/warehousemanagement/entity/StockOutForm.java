@@ -15,6 +15,9 @@ public class StockOutForm {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(nullable = false, unique = true)
+    private String code;
+
     @Column(nullable = false)
     private String destination;
 
@@ -27,6 +30,14 @@ public class StockOutForm {
 
     @Column(nullable = false)
     private String note;
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
 
     public Integer getId() {
         return id;

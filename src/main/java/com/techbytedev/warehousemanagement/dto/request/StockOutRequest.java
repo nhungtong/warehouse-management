@@ -6,10 +6,19 @@ import java.util.List;
 
 @Data
 public class StockOutRequest {
+    private String code;
     private List<ProductOutRequest> products;
     private String destination;
     private String username;
     private String note;
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
 
     public String getDestination() {
         return destination;
