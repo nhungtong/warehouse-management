@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -137,5 +138,20 @@ public class AuthService {
         Random random = new Random();
         int code = 100000 + random.nextInt(900000);
         return String.valueOf(code);
+    }
+     public UserResponse getProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println(">>>>>>>>authentication:            " + authentication);
+        System.out.println(">>>>>check: authentication # null: " + authentication != null);
+        System.out.println(("auth.name = "+ authentication.getName()));
+        if (authentication != null && authentication.isAuthenticated()) {
+            String username = authentication.getName();
+
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            return userService.convertToResponse(user);
+        }
+        return null;
     }
 }
