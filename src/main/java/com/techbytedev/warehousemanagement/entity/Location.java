@@ -1,8 +1,8 @@
 package com.techbytedev.warehousemanagement.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
@@ -15,6 +15,7 @@ public class Location {
     private Integer id;
 
     @Column(nullable = false)
+    @NotBlank(message = "Tên vị trí lưu trữ không được để trống")
     private String name;
 
     private String description;

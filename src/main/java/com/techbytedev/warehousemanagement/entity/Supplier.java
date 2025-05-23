@@ -1,8 +1,8 @@
 package com.techbytedev.warehousemanagement.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
@@ -15,6 +15,7 @@ public class Supplier {
     private Integer id;
 
     @Column(nullable = false)
+    @NotBlank(message = "Tên nhà cung cấp không được để trống")
     private String name;
 
     private String contactInfo;
