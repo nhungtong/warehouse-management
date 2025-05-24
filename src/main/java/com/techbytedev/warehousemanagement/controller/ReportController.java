@@ -12,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -25,7 +24,6 @@ public class ReportController {
     @Autowired
     private ReportService reportService;
 
-  
     @GetMapping("/products")
     public List<ProductReportDTO> getProductReport(@RequestParam(required = false) String filterType) {
         return reportService.getProductReport(filterType);
@@ -65,7 +63,7 @@ public class ReportController {
 
         // Tiêu đề
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"Mã hàng", "Số lượng đầu kỳ", "Tổng nhập trong kỳ", "Tổng xuất trong kỳ", "Tồn kho cuối kỳ"};
+        String[] headers = {"Mã hàng", "Tên Sản Phẩm", "Số lượng đầu kỳ", "Tổng nhập trong kỳ", "Tổng xuất trong kỳ", "Tồn kho cuối kỳ"};
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
@@ -76,10 +74,11 @@ public class ReportController {
         for (WarehouseReportDTO dto : report) {
             Row row = sheet.createRow(rowNum++);
             row.createCell(0).setCellValue(dto.getProductCode());
-            row.createCell(1).setCellValue(dto.getOpeningStock());
-            row.createCell(2).setCellValue(dto.getTotalIn());
-            row.createCell(3).setCellValue(dto.getTotalOut());
-            row.createCell(4).setCellValue(dto.getClosingStock());
+            row.createCell(1).setCellValue(dto.getProductName() != null ? dto.getProductName() : "Không có tên"); // Thêm cột tên sản phẩm
+            row.createCell(2).setCellValue(dto.getOpeningStock());
+            row.createCell(3).setCellValue(dto.getTotalIn());
+            row.createCell(4).setCellValue(dto.getTotalOut());
+            row.createCell(5).setCellValue(dto.getClosingStock());
         }
 
         // Xuất file
