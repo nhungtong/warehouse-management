@@ -1,6 +1,9 @@
 package com.techbytedev.warehousemanagement.service;
 
+
 import jakarta.mail.MessagingException;
+
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -39,9 +42,9 @@ public class AuthService {
     private final UserService userService;
 
     public AuthService(UserRepository userRepository, RoleRepository roleRepository,
-                       PasswordResetTokenRepository tokenRepository, PasswordEncoder passwordEncoder,
-                       JwtUtil jwtUtil, AuthenticationManager authenticationManager,
-                       EmailService emailService, UserService userService) {
+            PasswordResetTokenRepository tokenRepository, PasswordEncoder passwordEncoder,
+            JwtUtil jwtUtil, AuthenticationManager authenticationManager,
+            EmailService emailService, UserService userService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.tokenRepository = tokenRepository;
@@ -59,12 +62,17 @@ public class AuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
+        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            throw new IllegalArgumentException("Phone number already exists");
+        }
 
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setAddress(request.getAddress());
 
         Role role = roleRepository.findByName("Customer")
                 .orElseThrow(() -> new IllegalArgumentException("Customer role not found"));
@@ -84,8 +92,7 @@ public class AuthService {
     @Transactional(readOnly = true)
     public AuthResponse login(AuthRequest request) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
         String username = authentication.getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
@@ -139,7 +146,8 @@ public class AuthService {
         int code = 100000 + random.nextInt(900000);
         return String.valueOf(code);
     }
-     public UserResponse getProfile() {
+
+    public UserResponse getProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         System.out.println(">>>>>>>>authentication:            " + authentication);
         System.out.println(">>>>>check: authentication # null: " + authentication != null);
