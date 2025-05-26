@@ -13,4 +13,6 @@ public class RoleResponseDTO {
     private Boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Set<PermissionResponseDTO> permissions; // Optional, chỉ điền khi includePermissions = true
+
 }

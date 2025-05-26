@@ -12,7 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.techbytedev.warehousemanagement.dto.request.UserCreateRequest;
 import com.techbytedev.warehousemanagement.dto.request.UserUpdateRequest;
+import com.techbytedev.warehousemanagement.dto.response.PermissionResponseDTO;
 import com.techbytedev.warehousemanagement.dto.response.UserResponse;
+import com.techbytedev.warehousemanagement.entity.Permission;
 import com.techbytedev.warehousemanagement.entity.Role;
 import com.techbytedev.warehousemanagement.entity.User;
 import com.techbytedev.warehousemanagement.repository.RoleRepository;
@@ -20,8 +22,11 @@ import com.techbytedev.warehousemanagement.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -31,19 +36,23 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PermissionService permissionService;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, PermissionService permissionService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.permissionService = permissionService;
     }
 
-    public Page<UserResponse> getAllUsers(Pageable pageable) {
-        logger.debug("Fetching users with pageable: {}", pageable);
-        Page<User> users = userRepository.findAllByDeletedAtIsNull(pageable);
-        logger.debug("Found {} users", users.getTotalElements());
-        return users.map(this::convertToResponse);
-    }
+    @Transactional(readOnly = true)
+public Page<UserResponse> getAllUsers(Pageable pageable) {
+    logger.debug("Fetching users with pageable: {}", pageable);
+    Page<User> users = userRepository.findAllByDeletedAtIsNull(pageable);
+    logger.debug("Found {} users", users.getTotalElements());
+    return users.map(this::convertToResponse);
+}
 
     public UserResponse getUserById(Integer id) {
         User user = userRepository.findByIdAndDeletedAtIsNull(id)
@@ -67,17 +76,19 @@ public class UserService {
         if (request.getIsActive() != null) {
             user.setActive(request.getIsActive());
         }
+        if (request.getRoleId() != null) {
+            Role role = roleRepository.findById(request.getRoleId())
+                    .orElseThrow(() -> new IllegalArgumentException("Role not found with id: " + request.getRoleId()));
+            user.setRole(role);
+        }
 
         user.setUpdatedAt(LocalDateTime.now());
-        Role role = request.getRoleName().equals("Admin") ? roleRepository.findByName("Admin")
-                .orElseThrow(() -> new IllegalArgumentException("Admin role not found")) : roleRepository.findByName("Customer")
-                .orElseThrow(() -> new IllegalArgumentException("Customer role not found"));
-        user.setRole(role);
         userRepository.save(user);
 
         return convertToResponse(user);
     }
 
+   @Transactional(readOnly = true)
     public Map<String, String> getUserContactInfo(Long userId) {
         Optional<User> userOptional = userRepository.findByIdAndDeletedAtIsNull(userId.intValue());
         if (userOptional.isPresent()) {
@@ -91,12 +102,11 @@ public class UserService {
         return Map.of("fullName", "Unknown", "email", "N/A", "phoneNumber", "N/A");
     }
 
-    public void deleteUser(Integer id) {
-        User user = userRepository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
-        user.setDeletedAt(LocalDateTime.now());
-        userRepository.save(user);
-    }
+public void deleteUser(Integer id) {
+    User user = userRepository.findByIdAndDeletedAtIsNull(id)
+            .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+    userRepository.delete(user);
+}
 
     public UserResponse assignAdminRole(Integer id) {
         User user = userRepository.findByIdAndDeletedAtIsNull(id)
@@ -191,10 +201,9 @@ public class UserService {
         user.setFullName(request.getFullName());
         user.setAddress(request.getAddress());
         user.setPhoneNumber(request.getPhoneNumber());
-       
-        Role role = request.getRoleName().equals("Admin") ? roleRepository.findByName("Admin")
-                .orElseThrow(() -> new IllegalArgumentException("Admin role not found")) : roleRepository.findByName("Customer")
-                .orElseThrow(() -> new IllegalArgumentException("Customer role not found"));
+
+        Role role = roleRepository.findById(request.getRoleId())
+                .orElseThrow(() -> new IllegalArgumentException("Role not found with id: " + request.getRoleId()));
         user.setRole(role);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
@@ -205,12 +214,13 @@ public class UserService {
         return response;
     }
 
+    @Transactional(readOnly = true)
     public Page<UserResponse> searchUsers(String username, String email, String roleName, Boolean isActive, Pageable pageable) {
         return userRepository.searchUsers(username, email, roleName, isActive, pageable)
                 .map(this::convertToResponse);
     }
 
-      @Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public User findByUsername(String username) {
         User user = userRepository.findByUsername(username).orElse(null);
         if (user != null) {
@@ -226,7 +236,6 @@ public class UserService {
         logger.debug("Found user: id={}", userId);
         return user;
     }
-    
 
     public UserResponse convertToResponse(User user) {
         UserResponse response = new UserResponse();
@@ -237,7 +246,24 @@ public class UserService {
         response.setPhoneNumber(user.getPhoneNumber());
         response.setAddress(user.getAddress());
         response.setActive(user.isActive());
-        response.setRoleName(user.getRoleName());
+        response.setRoleName(user.getRoleName()); // Sử dụng roleName thay vì user.getRole().getName()
+
+        if (user.getRole() != null && user.getRole().getId() != null) {
+            List<Permission> permissions = permissionService.findByRoleId(user.getRole().getId());
+            Set<PermissionResponseDTO> permissionDTOs = permissions.stream()
+                    .map(permission -> {
+                        PermissionResponseDTO dto = new PermissionResponseDTO();
+                        dto.setId(permission.getId());
+                        dto.setName(permission.getName());
+                        dto.setApiPath(permission.getApiPath());
+                        dto.setMethod(permission.getMethod());
+                        dto.setModule(permission.getModule());
+                        return dto;
+                    }).collect(Collectors.toSet());
+            response.setPermissions(permissionDTOs);
+        }
+
         return response;
     }
+
 }
