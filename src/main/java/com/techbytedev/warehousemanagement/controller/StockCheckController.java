@@ -28,12 +28,12 @@ public class StockCheckController {
     // Thực hiện kiểm kê
     @PostMapping("/perform")
     @PreAuthorize("@permissionChecker.hasPermission(authentication, '/api/stockcheck/**', 'POST')")
-    public ResponseEntity<StockCheckResponse> performStockCheck(
-            @RequestBody StockCheckRequest stockCheckRequest,
+    public ResponseEntity<List<StockCheckResponse>> performStockCheck(
+            @RequestBody List<StockCheckRequest> stockCheckRequests,
             @RequestParam String username) {
         try {
-            StockCheckResponse result = stockCheckService.performStockCheck(stockCheckRequest, username);
-            return ResponseEntity.ok(result);
+            List<StockCheckResponse> results = stockCheckService.performStockCheck(stockCheckRequests, username);
+            return ResponseEntity.ok(results);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(null);
         }

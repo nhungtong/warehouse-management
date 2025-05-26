@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,12 +66,21 @@ public class StockCheckService {
         stockCheck.setSystemQuantity(systemQuantity);
         stockCheck.setActualQuantity(actualQuantity);
         stockCheck.setCheckedBy(checkedBy);
-        stockCheck.setCreateAt(LocalDateTime.now());
+        stockCheck.setCreatedAt(LocalDateTime.now());
 
         stockCheckRepository.save(stockCheck);
 
         return new StockCheckResponse(stockCheck);
     }
+    public List<StockCheckResponse> performStockCheck(List<StockCheckRequest> dtos, String username) {
+        List<StockCheckResponse> responses = new ArrayList<>();
+        for (StockCheckRequest dto : dtos) {
+            StockCheckResponse response = performStockCheck(dto, username);  // gọi method cũ xử lý từng cái
+            responses.add(response);
+        }
+        return responses;
+    }
+
 
     public List<StockCheckResponse> getMonthStockChecks() {
         List<StockCheck> monthChecks = stockCheckRepository.findAllByCurrentMonth();

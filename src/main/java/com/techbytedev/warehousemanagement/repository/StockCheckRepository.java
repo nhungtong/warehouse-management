@@ -14,12 +14,12 @@ import java.util.Optional;
 
 @Repository
 public interface StockCheckRepository extends JpaRepository<StockCheck, Integer> {
-    @Query("SELECT MAX(s.createAt) FROM StockCheck s")
+    @Query("SELECT MAX(s.createdAt) FROM StockCheck s")
     LocalDateTime getMaxCreatedAt();
 
     @Query("SELECT sc FROM StockCheck sc WHERE sc.product.productCode = :productCode")
     List<StockCheck> findByProductCode(@Param("productCode") String productCode);
 
-    @Query(value = "SELECT * FROM stock_check s WHERE MONTH(s.create_at) = MONTH(CURRENT_DATE()) AND YEAR(s.create_at) = YEAR(CURRENT_DATE())", nativeQuery = true)
+    @Query(value = "SELECT * FROM stock_check s WHERE MONTH(s.created_at) = MONTH(CURRENT_DATE()) AND YEAR(s.created_at) = YEAR(CURRENT_DATE())", nativeQuery = true)
     List<StockCheck> findAllByCurrentMonth();
 }
