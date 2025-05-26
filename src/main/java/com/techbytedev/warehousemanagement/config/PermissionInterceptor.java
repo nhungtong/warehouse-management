@@ -54,6 +54,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
         // Chuẩn hóa path với nhiều pattern
         List<String> possiblePaths = Arrays.asList(
+            path.replaceAll("/[A-Za-z0-9]+$", "/{productCode}"), // Thêm pattern cho productCode
             path.replaceAll("/\\d+$", "/{id}"), // /api/admin/permissions/{id}
             path.replaceAll("/\\d+$", "/[0-9]+"), // /api/admin/permissions/[0-9]+
             path.replaceAll("/\\d+$", "/:id"), // /api/admin/permissions/:id

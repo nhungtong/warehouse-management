@@ -10,7 +10,7 @@ import com.techbytedev.warehousemanagement.repository.SettingRepository;
 
 @Service
 public class SettingService {
-@Autowired
+    @Autowired
     private SettingRepository settingRepository;
 
     public boolean isLowStockAlertEnabled() {
@@ -23,6 +23,18 @@ public class SettingService {
         return setting != null ? setting.getValue() : "";
     }
 
+    // Thêm phương thức cho stock_threshold
+    public Integer getStockThreshold() {
+        Setting setting = settingRepository.findByKey("stock_threshold");
+        return setting != null ? Integer.parseInt(setting.getValue()) : 0; // Giá trị mặc định là 0 nếu không có
+    }
+
+    // Thêm phương thức cho notification_frequency
+    public String getNotificationFrequency() {
+        Setting setting = settingRepository.findByKey("notification_frequency");
+        return setting != null ? setting.getValue() : "daily"; // Giá trị mặc định là "daily"
+    }
+
     public void updateSetting(String key, String value, String description) {
         Setting setting = settingRepository.findByKey(key);
         if (setting == null) {
@@ -33,6 +45,7 @@ public class SettingService {
         setting.setDescription(description);
         settingRepository.save(setting);
     }
+
     // Tạo mới thiết lập
     public String createSetting(String key, String value, String description) {
         if (settingRepository.findByKey(key) != null) {

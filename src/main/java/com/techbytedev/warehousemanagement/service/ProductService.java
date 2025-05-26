@@ -6,6 +6,10 @@ import com.techbytedev.warehousemanagement.entity.Inventory;
 import com.techbytedev.warehousemanagement.entity.Product;
 import com.techbytedev.warehousemanagement.repository.InventoryRepository;
 import com.techbytedev.warehousemanagement.repository.ProductRepository;
+
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -47,5 +51,32 @@ public class ProductService {
                 locationName,
                 quantity
         );
+    }
+
+
+
+    // Lấy danh sách tất cả sản phẩm
+    public List<Product> getAllProducts() {
+        return productRepository.findAll();
+    }
+
+    // Cập nhật minStock cho một sản phẩm
+    public Product updateMinStock(String productCode, Integer minStock) {
+        Product product = productRepository.findByProductCode(productCode)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với mã: " + productCode));
+        product.setMinStock(minStock);
+        return productRepository.save(product);
+    }
+
+    // Cập nhật hàng loạt minStock
+    public void updateBatchMinStock(List<Map<String, Object>> updates) {
+        for (Map<String, Object> update : updates) {
+            String productCode = (String) update.get("productCode");
+            Integer minStock = (Integer) update.get("minStock");
+            Product product = productRepository.findByProductCode(productCode)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với mã: " + productCode));
+            product.setMinStock(minStock);
+            productRepository.save(product);
+        }
     }
 }

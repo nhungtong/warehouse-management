@@ -5,6 +5,7 @@ import com.techbytedev.warehousemanagement.dto.response.WarehouseReportDTO;
 import com.techbytedev.warehousemanagement.entity.Inventory;
 import com.techbytedev.warehousemanagement.entity.Product;
 import com.techbytedev.warehousemanagement.repository.InventoryRepository;
+import com.techbytedev.warehousemanagement.repository.InventorySnapshotRepository;
 import com.techbytedev.warehousemanagement.repository.ProductRepository;
 import com.techbytedev.warehousemanagement.repository.StockInDetailRepository;
 import com.techbytedev.warehousemanagement.repository.StockOutDetailRepository;
@@ -44,11 +45,13 @@ public class ReportService {
     @Autowired
     private ProductRepository productRepository;
 
-    
-public List<ProductReportDTO> getProductReport(String filterType) {
-        LocalDateTime now = LocalDateTime.now(); // 11:16 AM, 16/05/2025
-        LocalDateTime oneMonthAgo = now.minusMonths(1); // 16/04/2025 11:16 AM
-        LocalDateTime tenDaysFromNow = now.plusDays(10); // 26/05/2025 11:16 AM
+    @Autowired
+    private InventorySnapshotRepository inventorySnapshotRepository;
+
+    public List<ProductReportDTO> getProductReport(String filterType) {
+        LocalDateTime now = LocalDateTime.now(); // 04:34 PM, 24/05/2025
+        LocalDateTime oneMonthAgo = now.minusMonths(1); // 24/04/2025 04:34 PM
+        LocalDateTime tenDaysFromNow = now.plusDays(10); // 03/06/2025 04:34 PM
 
         List<Product> products = productRepository.findAll();
         List<ProductReportDTO> report = new ArrayList<>();
@@ -72,6 +75,7 @@ public List<ProductReportDTO> getProductReport(String filterType) {
 
             ProductReportDTO dto = new ProductReportDTO();
             dto.setProductCode(product.getProductCode());
+            dto.setProductName(product.getName() != null ? product.getName() : "Không có tên"); // Thêm tên sản phẩm
             dto.setExpirationDate(product.getExpirationDate() != null ? new java.sql.Date(product.getExpirationDate().getTime()) : null);
             dto.setLastOutDate(lastOutDateMap.getOrDefault(product.getProductCode(), null));
             dto.setCurrentStock(currentStock);
@@ -93,7 +97,7 @@ public List<ProductReportDTO> getProductReport(String filterType) {
         return report;
     }
 
-public byte[] exportProductReportToExcel(String filterType) throws IOException {
+    public byte[] exportProductReportToExcel(String filterType) throws IOException {
         List<ProductReportDTO> report = getProductReport(filterType);
 
         Workbook workbook = new XSSFWorkbook();
@@ -101,7 +105,7 @@ public byte[] exportProductReportToExcel(String filterType) throws IOException {
 
         // Tiêu đề
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"Mã hàng", "Ngày hết hạn", "Ngày xuất kho gần nhất", "Số lượng tồn hiện tại"};
+        String[] headers = {"Mã hàng", "Tên Sản Phẩm", "Ngày hết hạn", "Ngày xuất kho gần nhất", "Số lượng tồn hiện tại"};
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
@@ -112,13 +116,18 @@ public byte[] exportProductReportToExcel(String filterType) throws IOException {
         for (ProductReportDTO dto : report) {
             Row row = sheet.createRow(rowNum++);
             row.createCell(0).setCellValue(dto.getProductCode());
+            row.createCell(1).setCellValue(dto.getProductName() != null ? dto.getProductName() : "Không có tên"); // Thêm cột tên sản phẩm
             if (dto.getExpirationDate() != null) {
-                row.createCell(1).setCellValue(dto.getExpirationDate().toString());
+                row.createCell(2).setCellValue(dto.getExpirationDate().toString());
+            } else {
+                row.createCell(2).setCellValue("");
             }
             if (dto.getLastOutDate() != null) {
-                row.createCell(2).setCellValue(dto.getLastOutDate().toString());
+                row.createCell(3).setCellValue(dto.getLastOutDate().toString());
+            } else {
+                row.createCell(3).setCellValue("");
             }
-            row.createCell(3).setCellValue(dto.getCurrentStock() != null ? dto.getCurrentStock() : 0);
+            row.createCell(4).setCellValue(dto.getCurrentStock() != null ? dto.getCurrentStock() : 0);
         }
 
         // Xuất file
@@ -129,15 +138,32 @@ public byte[] exportProductReportToExcel(String filterType) throws IOException {
     }
 
     public List<WarehouseReportDTO> getWarehouseReport(LocalDateTime startDate, LocalDateTime endDate) {
-        
+        // Tìm mốc cố định gần nhất (cuối tháng trước startDate)
+        LocalDateTime snapshotDate = startDate.minusMonths(1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        snapshotDate = snapshotDate.plusMonths(1).minusDays(1).withHour(23).withMinute(59).withSecond(59);
 
-        // Lấy số lượng đầu kỳ
-        List<Object[]> openingStockResults = inventoryRepository.getOpeningStock(startDate);
+        // Lấy số lượng tồn kho từ snapshot
+        List<Object[]> snapshotResults = inventorySnapshotRepository.findLatestSnapshotBeforeDate(startDate);
         Map<String, Integer> openingStockMap = new HashMap<>();
-        for (Object[] result : openingStockResults) {
+        for (Object[] result : snapshotResults) {
             String productCode = (String) result[0];
             Integer quantity = ((Number) result[1]).intValue();
             openingStockMap.put(productCode, quantity != null ? quantity : 0);
+        }
+
+        // Điều chỉnh số lượng đầu kỳ dựa trên giao dịch từ snapshotDate đến startDate
+        List<Object[]> inAdjustments = stockInDetailRepository.getTotalIn(snapshotDate, startDate);
+        for (Object[] result : inAdjustments) {
+            String productCode = (String) result[0];
+            Integer quantity = ((Number) result[1]).intValue();
+            openingStockMap.merge(productCode, quantity, Integer::sum);
+        }
+
+        List<Object[]> outAdjustments = stockOutDetailRepository.getTotalOut(snapshotDate, startDate);
+        for (Object[] result : outAdjustments) {
+            String productCode = (String) result[0];
+            Integer quantity = ((Number) result[1]).intValue();
+            openingStockMap.merge(productCode, -quantity, Integer::sum);
         }
 
         // Lấy tổng nhập trong kỳ
@@ -158,9 +184,13 @@ public byte[] exportProductReportToExcel(String filterType) throws IOException {
             totalOutMap.put(productCode, quantity != null ? quantity : 0);
         }
 
+        // Lấy tất cả sản phẩm để ánh xạ productCode với productName
+        List<Product> products = productRepository.findAll();
+        Map<String, String> productNameMap = products.stream()
+                .collect(Collectors.toMap(Product::getProductCode, product -> product.getName() != null ? product.getName() : "Không có tên"));
+
         // Tạo báo cáo
         List<WarehouseReportDTO> report = new ArrayList<>();
-        // Lấy danh sách mã hàng từ các bản ghi (có thể mở rộng để lấy từ bảng products)
         Set<String> allProductCodes = new HashSet<>();
         allProductCodes.addAll(openingStockMap.keySet());
         allProductCodes.addAll(totalInMap.keySet());
@@ -169,6 +199,7 @@ public byte[] exportProductReportToExcel(String filterType) throws IOException {
         for (String productCode : allProductCodes) {
             WarehouseReportDTO dto = new WarehouseReportDTO();
             dto.setProductCode(productCode);
+            dto.setProductName(productNameMap.getOrDefault(productCode, "Không có tên")); // Thêm tên sản phẩm
             dto.setOpeningStock(openingStockMap.getOrDefault(productCode, 0));
             dto.setTotalIn(totalInMap.getOrDefault(productCode, 0));
             dto.setTotalOut(totalOutMap.getOrDefault(productCode, 0));
