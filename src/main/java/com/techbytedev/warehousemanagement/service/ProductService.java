@@ -2,6 +2,7 @@ package com.techbytedev.warehousemanagement.service;
 
 import com.techbytedev.warehousemanagement.dto.request.ProductRequest;
 import com.techbytedev.warehousemanagement.dto.response.ProductDetailResponse;
+import com.techbytedev.warehousemanagement.dto.response.ProductListResponse;
 import com.techbytedev.warehousemanagement.dto.response.ProductResponse;
 import com.techbytedev.warehousemanagement.dto.response.ResultPaginationDTO;
 import com.techbytedev.warehousemanagement.entity.Inventory;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -26,7 +28,8 @@ public class ProductService {
     private final InventoryRepository inventoryRepository;
     private final SupplierRepository supplierRepository;
 
-    public ProductService(ProductRepository productRepository, InventoryRepository inventoryRepository, SupplierRepository supplierRepository) {
+    public ProductService(ProductRepository productRepository, InventoryRepository inventoryRepository,
+            SupplierRepository supplierRepository) {
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
         this.supplierRepository = supplierRepository;
@@ -50,8 +53,10 @@ public class ProductService {
         if (productRepository.findByProductCode(request.getProductCode()).isPresent()) {
             throw new RuntimeException("Sản phẩm với mã " + request.getProductCode() + " đã tồn tại");
         }
-        Supplier supplier = supplierRepository.findById(request.getSupplierId() != null ? request.getSupplierId().intValue() : null)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà cung cấp với ID: " + request.getSupplierId()));
+        Supplier supplier = supplierRepository
+                .findById(request.getSupplierId() != null ? request.getSupplierId().intValue() : null)
+                .orElseThrow(
+                        () -> new RuntimeException("Không tìm thấy nhà cung cấp với ID: " + request.getSupplierId()));
 
         Product product = new Product();
         product.setProductCode(request.getProductCode());
@@ -70,7 +75,8 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với mã: " + productCode));
         Integer supplierId = request.getSupplierId() != null ? request.getSupplierId().intValue() : null;
         Supplier supplier = supplierRepository.findById(supplierId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà cung cấp với ID: " + request.getSupplierId()));
+                .orElseThrow(
+                        () -> new RuntimeException("Không tìm thấy nhà cung cấp với ID: " + request.getSupplierId()));
 
         product.setName(request.getName());
         product.setUnit(request.getUnit());
@@ -102,18 +108,41 @@ public class ProductService {
                 product.getUnit(),
                 product.getSupplier() != null ? product.getSupplier().getName() : "Không có",
                 locationName,
-                quantity
-        );
+                quantity);
     }
 
     public ResultPaginationDTO getAllProducts(Pageable pageable) {
+        // Lấy danh sách sản phẩm phân trang
         Page<Product> productPage = productRepository.findAll(pageable);
+
+        // Ánh xạ danh sách sản phẩm sang ProductListResponse, bao gồm thông tin tồn kho
+        List<ProductListResponse> productList = productPage.getContent().stream()
+                .map(product -> {
+                    // Gọi getProductDetailByCode để lấy thông tin tồn kho
+                    ProductDetailResponse detail = getProductDetailByCode(product.getProductCode());
+                    return new ProductListResponse(
+                            product.getId(),
+                            product.getProductCode(),
+                            product.getName(),
+                            product.getUnit(),
+                            product.getSupplier().getId(),
+                            product.getSupplier() != null ? product.getSupplier().getName() : "Không có",
+                            product.getMinStock(),
+                            product.getExpirationDate(),
+                            product.getCreatedAt(),
+                            detail.getQuantity() // Lấy số lượng tồn kho từ ProductDetailResponse
+                    );
+                })
+                .collect(Collectors.toList());
+
+        // Tạo ResultPaginationDTO để trả về
         ResultPaginationDTO response = new ResultPaginationDTO();
-        response.setContent(productPage.getContent());
+        response.setContent(productList);
         response.setPage(productPage.getNumber());
         response.setSize(productPage.getSize());
         response.setTotalElements(productPage.getTotalElements());
         response.setTotalPages(productPage.getTotalPages());
+
         return response;
     }
 
