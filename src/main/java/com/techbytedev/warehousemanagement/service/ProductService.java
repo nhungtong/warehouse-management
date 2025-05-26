@@ -6,11 +6,10 @@ import com.techbytedev.warehousemanagement.entity.Inventory;
 import com.techbytedev.warehousemanagement.entity.Product;
 import com.techbytedev.warehousemanagement.repository.InventoryRepository;
 import com.techbytedev.warehousemanagement.repository.ProductRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.stereotype.Service;
 
 @Service
 public class ProductService {
@@ -25,23 +24,21 @@ public class ProductService {
     public long countAllProducts() {
         return productRepository.count();
     }
+
     public ProductResponse getProductByCode(String code) {
         Product product = productRepository.findByProductCode(code).orElse(null);
         if (product == null) {
             return null;
         }
         Integer currentStock = inventoryRepository.sumQuantityByProductId(product.getId());
-
         return new ProductResponse(product, currentStock);
     }
+
     public ProductDetailResponse getProductDetailByCode(String productCode) {
         Product product = productRepository.findByProductCode(productCode)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
-        Inventory inventory = inventoryRepository.findByProductId(product.getId())
-                .orElse(null);
-
+        Inventory inventory = inventoryRepository.findByProductId(product.getId()).orElse(null);
         String locationName = inventory != null ? inventory.getLocation().getName() : "Không xác định";
-
         Integer quantity = inventory != null ? inventory.getQuantity() : 0;
         return new ProductDetailResponse(
                 product.getProductCode(),
@@ -52,8 +49,6 @@ public class ProductService {
                 quantity
         );
     }
-
-
 
     // Lấy danh sách tất cả sản phẩm
     public List<Product> getAllProducts() {

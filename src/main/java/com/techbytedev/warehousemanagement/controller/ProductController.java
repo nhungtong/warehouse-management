@@ -1,26 +1,26 @@
 package com.techbytedev.warehousemanagement.controller;
 
+import com.techbytedev.warehousemanagement.dto.request.UpdateMinStockRequest;
 import com.techbytedev.warehousemanagement.dto.response.ProductDetailResponse;
 import com.techbytedev.warehousemanagement.entity.Product;
 import com.techbytedev.warehousemanagement.service.ProductService;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import jakarta.validation.Valid;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
+    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
     private final ProductService productService;
 
     public ProductController(ProductService productService) {
@@ -29,10 +29,10 @@ public class ProductController {
 
     @GetMapping("/count")
     public long count() {
-         return productService.countAllProducts();
+        return productService.countAllProducts();
     }
 
-    // hiển thị chi tiết sản phẩm
+    // Hiển thị chi tiết sản phẩm
     @GetMapping("/{productCode}")
     public ResponseEntity<?> getProductDetail(@PathVariable String productCode) {
         try {
@@ -44,8 +44,6 @@ public class ProductController {
     }
 
     // Lấy danh sách sản phẩm
-
-    
     @GetMapping
     @PreAuthorize("@permissionChecker.hasPermission(authentication, '/api/products/**', 'GET')")
     public ResponseEntity<List<Product>> getAllProducts() {
@@ -55,14 +53,21 @@ public class ProductController {
     // Cập nhật minStock cho một sản phẩm
     @PutMapping("/{productCode}")
     @PreAuthorize("@permissionChecker.hasPermission(authentication, '/api/products/**', 'PUT')")
-    public ResponseEntity<Product> updateMinStock(
+    public ResponseEntity<?> updateMinStock(
             @PathVariable String productCode,
-            @RequestBody Map<String, Integer> request) {
-                System.out.println("Request to update minStock=============================================================================================================================: " + request);
-        if (!request.containsKey("minStock")) {
-            return ResponseEntity.badRequest().body(null);
+            @Valid @RequestBody UpdateMinStockRequest request) {
+        logger.debug("Received request for productCode: {}, request: {}", productCode, request);
+        if (request.getMinStock() == null) {
+            logger.warn("minStock is null for productCode: {}", productCode);
+            return ResponseEntity.badRequest().body("Lỗi: Trường 'minStock' không được để trống.");
         }
-        return ResponseEntity.ok(productService.updateMinStock(productCode, request.get("minStock")));
+        try {
+            Product updatedProduct = productService.updateMinStock(productCode, request.getMinStock());
+            return ResponseEntity.ok(updatedProduct);
+        } catch (RuntimeException e) {
+            logger.error("Error updating minStock for productCode: {}, error: {}", productCode, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Lỗi: " + e.getMessage());
+        }
     }
 
     // Cập nhật hàng loạt minStock
@@ -72,5 +77,4 @@ public class ProductController {
         productService.updateBatchMinStock(updates);
         return ResponseEntity.ok("Cập nhật hàng loạt mức tồn kho thành công!");
     }
-
 }
