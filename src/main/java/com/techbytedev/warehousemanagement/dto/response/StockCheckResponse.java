@@ -8,6 +8,7 @@ public class StockCheckResponse {
     private String productCode;
     private String productName;
     private String locationName;
+    private String unit;
     private Integer systemQuantity;
     private Integer actualQuantity;
     private String status;
@@ -17,10 +18,19 @@ public class StockCheckResponse {
         this.productCode = stockCheck.getProduct().getProductCode();
         this.productName = stockCheck.getProduct().getName();
         this.locationName = stockCheck.getLocation().getName();
+        this.unit = stockCheck.getProduct().getUnit();
         this.systemQuantity = stockCheck.getSystemQuantity();
         this.actualQuantity = stockCheck.getActualQuantity();
         this.difference = actualQuantity - systemQuantity;
         this.status = (difference == 0) ? "Trùng khớp" : "Phát hiện sai lệch";
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 
     public String getProductCode() {

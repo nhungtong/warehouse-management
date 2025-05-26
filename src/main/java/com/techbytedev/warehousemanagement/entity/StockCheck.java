@@ -34,7 +34,7 @@ public class StockCheck {
     private User checkedBy;
 
     @Column(nullable = false, name = "created_at")
-    private LocalDateTime createAt;
+    private LocalDateTime createdAt;
 
     public Location getLocation() {
         return location;
@@ -84,11 +84,11 @@ public class StockCheck {
         this.checkedBy = checkedBy;
     }
 
-    public LocalDateTime getCreateAt() {
-        return createAt;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreateAt(LocalDateTime createAt) {
-        this.createAt = createAt;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }
