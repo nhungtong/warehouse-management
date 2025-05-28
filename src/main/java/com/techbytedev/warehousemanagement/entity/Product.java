@@ -37,6 +37,18 @@ public class Product {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "qr_code")
+private String qrCode;
+
+public String getQrCode() {
+    return qrCode;
+}
+
+public void setQrCode(String qrCode) {
+    this.qrCode = qrCode;
+}
+
+
     public Product() {
     }
 

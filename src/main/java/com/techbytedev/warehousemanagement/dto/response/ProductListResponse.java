@@ -17,6 +17,7 @@ public class ProductListResponse {
     private String supplierName;
     private Integer minStock;
     private Date expirationDate;
+    private String qrCode; // Thêm trường qrCode
     private LocalDateTime createdAt;
     private Integer inventory; // Thêm trường inventory
 

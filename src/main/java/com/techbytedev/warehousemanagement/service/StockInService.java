@@ -104,8 +104,10 @@ public class StockInService {
                         newProduct.setCreatedAt(LocalDateTime.now());
                         Product savedProduct = productRepository.save(newProduct);
                         try {
-                            String qrPath = "Uploads/qrcode/" + savedProduct.getProductCode() + ".png";
+                            String qrPath = "uploads/qrcode/" + savedProduct.getProductCode() + ".png";
                             QRCodeGeneratorUtil.generateQRCodeFile(savedProduct.getProductCode(), qrPath);
+                            savedProduct.setQrCode(qrPath);
+                             productRepository.save(savedProduct); // Lưu lại với qrCode
                         } catch (Exception e) {
                             throw new RuntimeException("Lỗi khi tạo mã QR cho sản phẩm: " + savedProduct.getProductCode(), e);
                         }

@@ -83,6 +83,7 @@ public class ProductService {
         product.setSupplier(supplier);
         product.setMinStock(request.getMinStock() != null ? request.getMinStock() : product.getMinStock());
         product.setExpirationDate(request.getExpirationDate());
+        
         return productRepository.save(product);
     }
 
@@ -106,9 +107,11 @@ public class ProductService {
                 product.getProductCode(),
                 product.getName(),
                 product.getUnit(),
+               
                 product.getSupplier() != null ? product.getSupplier().getName() : "Không có",
                 locationName,
-                quantity);
+                quantity,
+                product.getQrCode());
     }
 
     public ResultPaginationDTO getAllProducts(Pageable pageable) {
@@ -167,5 +170,11 @@ public class ProductService {
             product.setMinStock(minStock);
             productRepository.save(product);
         }
+    }
+
+    public String getQrCodeByProductCode(String productCode) {
+        Product product = productRepository.findByProductCode(productCode)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với mã: " + productCode));
+        return product.getQrCode();
     }
 }
