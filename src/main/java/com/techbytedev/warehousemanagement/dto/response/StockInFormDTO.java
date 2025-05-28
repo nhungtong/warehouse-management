@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 public class StockInFormDTO {
     private Integer id;
     private String code;
-    private String supplierName;
     private String invoiceFile;
     private String note;
     private LocalDateTime createdAt;
@@ -30,13 +29,6 @@ public class StockInFormDTO {
         this.code = code;
     }
 
-    public String getSupplierName() {
-        return supplierName;
-    }
-
-    public void setSupplierName(String supplierName) {
-        this.supplierName = supplierName;
-    }
 
     public String getInvoiceFile() {
         return invoiceFile;

@@ -8,6 +8,8 @@ import com.techbytedev.warehousemanagement.dto.response.StockInFormDetailViewDTO
 import com.techbytedev.warehousemanagement.entity.*;
 import com.techbytedev.warehousemanagement.repository.*;
 import com.techbytedev.warehousemanagement.util.QRCodeGeneratorUtil;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -97,7 +99,6 @@ public class StockInService {
                         newSupplier.setName(productRequest.getSupplierName());
                         return supplierRepository.save(newSupplier);
                     });
-            stockInForm.setSupplier(supplier);
             stockInFormRepository.save(stockInForm);
             Product product = productRepository.findByProductCode(productRequest.getProductCode())
                     .orElseGet(() -> {
@@ -159,7 +160,6 @@ public class StockInService {
         StockInFormDTO dto = new StockInFormDTO();
         dto.setId(form.getId());
         dto.setCode(form.getCode());
-        dto.setSupplierName(form.getSupplier().getName());
         dto.setNote(form.getNote());
         dto.setCreatedAt(form.getCreatedAt());
         dto.setUsername(form.getCreatedBy().getUsername());
@@ -169,17 +169,17 @@ public class StockInService {
     private StockInDetailDTO toDetailDTO(StockInDetail detail) {
         StockInDetailDTO dto = new StockInDetailDTO();
         dto.setProductName(detail.getProduct().getName());
+        dto.setSupplierName(detail.getProduct().getSupplier().getName());
         dto.setQuantity(detail.getQuantity());
         dto.setUnitPrice(detail.getUnitPrice());
         dto.setLocationName(detail.getLocation().getName());
         return dto;
     }
-    public List<StockInFormDTO> getAllForms() {
-        return stockInFormRepository.findAll()
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+    public Page<StockInFormDTO> getAllForms(Pageable pageable) {
+        return stockInFormRepository.findAll(pageable)
+                .map(this::toDTO);
     }
+
     public StockInFormDetailViewDTO getFormWithDetails(Integer id) {
         StockInForm form = stockInFormRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Phiếu nhập không tồn tại"));
@@ -187,7 +187,6 @@ public class StockInService {
         StockInFormDetailViewDTO dto = new StockInFormDetailViewDTO();
         dto.setId(form.getId());
         dto.setCode(form.getCode());
-        dto.setSupplierName(form.getSupplier().getName());
         dto.setNote(form.getNote());
         dto.setCreatedAt(form.getCreatedAt());
         dto.setUsername(form.getCreatedBy().getUsername());

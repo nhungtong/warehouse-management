@@ -21,10 +21,6 @@ public class StockInForm {
     @Column(nullable = false, unique = true)
     private String code;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "supplier_id", referencedColumnName = "id")
-    private Supplier supplier;
-
     private String invoiceFile;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -62,14 +58,6 @@ public class StockInForm {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public Supplier getSupplier() {
-        return supplier;
-    }
-
-    public void setSupplier(Supplier supplier) {
-        this.supplier = supplier;
     }
 
     public String getInvoiceFile() {

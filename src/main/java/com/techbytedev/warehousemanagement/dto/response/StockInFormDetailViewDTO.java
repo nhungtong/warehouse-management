@@ -9,7 +9,6 @@ import java.util.List;
 public class StockInFormDetailViewDTO {
     private Integer id;
     private String code;
-    private String supplierName;
     private String note;
     private LocalDateTime createdAt;
     private String username;
@@ -40,13 +39,6 @@ public class StockInFormDetailViewDTO {
         this.code = code;
     }
 
-    public String getSupplierName() {
-        return supplierName;
-    }
-
-    public void setSupplierName(String supplierName) {
-        this.supplierName = supplierName;
-    }
 
     public String getNote() {
         return note;

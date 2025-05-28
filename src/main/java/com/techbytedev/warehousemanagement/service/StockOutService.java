@@ -7,6 +7,8 @@ import com.techbytedev.warehousemanagement.dto.response.StockOutFormDTO;
 import com.techbytedev.warehousemanagement.dto.response.StockOutFormDetailViewDTO;
 import com.techbytedev.warehousemanagement.entity.*;
 import com.techbytedev.warehousemanagement.repository.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -98,11 +100,11 @@ public class StockOutService {
         dto.setQuantity(detail.getQuantity());
         return dto;
     }
-    public List<StockOutFormDTO> getAllForms() {
-        return stockOutFormRepository.findAll().stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+    public Page<StockOutFormDTO> getAllForms(Pageable pageable) {
+        return stockOutFormRepository.findAll(pageable)
+                .map(this::toDTO);
     }
+
     public StockOutFormDetailViewDTO getFormWithDetails(Integer id) {
         StockOutForm form = stockOutFormRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Phiếu xuất không tồn tại"));
