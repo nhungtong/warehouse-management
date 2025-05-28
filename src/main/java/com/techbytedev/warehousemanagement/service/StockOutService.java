@@ -2,12 +2,17 @@ package com.techbytedev.warehousemanagement.service;
 
 import com.techbytedev.warehousemanagement.dto.request.ProductOutRequest;
 import com.techbytedev.warehousemanagement.dto.request.StockOutRequest;
+import com.techbytedev.warehousemanagement.dto.response.StockOutDetailDTO;
+import com.techbytedev.warehousemanagement.dto.response.StockOutFormDTO;
+import com.techbytedev.warehousemanagement.dto.response.StockOutFormDetailViewDTO;
 import com.techbytedev.warehousemanagement.entity.*;
 import com.techbytedev.warehousemanagement.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class StockOutService {
@@ -75,5 +80,47 @@ public class StockOutService {
             detail.setQuantity(p.getQuantity());
             stockOutDetailRepository.save(detail);
         }
+    }
+    private StockOutFormDTO toDTO(StockOutForm form) {
+        StockOutFormDTO dto = new StockOutFormDTO();
+        dto.setId(form.getId());
+        dto.setCode(form.getCode());
+        dto.setDestination(form.getDestination());
+        dto.setUsername(form.getCreatedBy().getUsername());
+        dto.setCreatedAt(form.getCreatedAt());
+        dto.setNote(form.getNote());
+        return dto;
+    }
+
+    private StockOutDetailDTO toDetailDTO(StockOutDetail detail) {
+        StockOutDetailDTO dto = new StockOutDetailDTO();
+        dto.setProductName(detail.getProduct().getName());
+        dto.setQuantity(detail.getQuantity());
+        return dto;
+    }
+    public List<StockOutFormDTO> getAllForms() {
+        return stockOutFormRepository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+    public StockOutFormDetailViewDTO getFormWithDetails(Integer id) {
+        StockOutForm form = stockOutFormRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Phiếu xuất không tồn tại"));
+
+        StockOutFormDetailViewDTO dto = new StockOutFormDetailViewDTO();
+        dto.setId(form.getId());
+        dto.setCode(form.getCode());
+        dto.setDestination(form.getDestination());
+        dto.setUsername(form.getCreatedBy().getUsername());
+        dto.setCreatedAt(form.getCreatedAt());
+        dto.setNote(form.getNote());
+
+        List<StockOutDetailDTO> details = form.getStockOutDetails()
+                .stream()
+                .map(this::toDetailDTO)
+                .collect(Collectors.toList());
+        dto.setDetails(details);
+
+        return dto;
     }
 }

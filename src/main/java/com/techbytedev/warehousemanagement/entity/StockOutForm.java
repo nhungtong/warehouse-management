@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "stock_out_forms")
@@ -30,6 +31,17 @@ public class StockOutForm {
 
     @Column(nullable = false)
     private String note;
+
+    @OneToMany(mappedBy = "stockOutForm", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<StockOutDetail> stockOutDetails;
+
+    public List<StockOutDetail> getStockOutDetails() {
+        return stockOutDetails;
+    }
+
+    public void setStockOutDetails(List<StockOutDetail> stockOutDetails) {
+        this.stockOutDetails = stockOutDetails;
+    }
 
     public String getCode() {
         return code;

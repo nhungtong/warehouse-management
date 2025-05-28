@@ -1,11 +1,15 @@
 package com.techbytedev.warehousemanagement.controller;
 
 import com.techbytedev.warehousemanagement.dto.request.StockOutRequest;
+import com.techbytedev.warehousemanagement.dto.response.StockOutFormDTO;
+import com.techbytedev.warehousemanagement.dto.response.StockOutFormDetailViewDTO;
 import com.techbytedev.warehousemanagement.service.StockOutService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/stock-out")
@@ -31,6 +35,15 @@ public class StockOutController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+    @GetMapping("/forms")
+    public List<StockOutFormDTO> getAllForms() {
+        return stockOutService.getAllForms();
+    }
+
+    @GetMapping("/forms/{id}")
+    public StockOutFormDetailViewDTO getFormDetails(@PathVariable Integer id) {
+        return stockOutService.getFormWithDetails(id);
     }
 
 }
