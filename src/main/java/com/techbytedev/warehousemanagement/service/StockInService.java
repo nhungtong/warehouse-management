@@ -31,8 +31,13 @@ public class StockInService {
     private final StockInFormRepository stockInFormRepository;
     private final InventoryRepository inventoryRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
+    private final SettingService settingService;
 
-    public StockInService(StockInDetailRepository stockInDetailRepository, ProductRepository productRepository, SupplierRepository supplierRepository, LocationRepository locationRepository, StockInFormRepository stockInFormRepository, InventoryRepository inventoryRepository, UserRepository userRepository) {
+    public StockInService(StockInDetailRepository stockInDetailRepository, ProductRepository productRepository,
+                          SupplierRepository supplierRepository, LocationRepository locationRepository,
+                          StockInFormRepository stockInFormRepository, InventoryRepository inventoryRepository,
+                          UserRepository userRepository, EmailService emailService, SettingService settingService) {
         this.stockInDetailRepository = stockInDetailRepository;
         this.productRepository = productRepository;
         this.supplierRepository = supplierRepository;
@@ -40,6 +45,8 @@ public class StockInService {
         this.stockInFormRepository = stockInFormRepository;
         this.inventoryRepository = inventoryRepository;
         this.userRepository = userRepository;
+        this.emailService = emailService;
+        this.settingService = settingService;
     }
 
     public long getTotalStockIn() {
@@ -65,6 +72,7 @@ public class StockInService {
             throw new RuntimeException("Lỗi khi lưu file hóa đơn", e);
         }
     }
+
     @Transactional
     public StockInRequest handleStockIn(StockInRequest requestDTO, MultipartFile invoiceFile) {
         User user = userRepository.findByUsername(requestDTO.getUsername())
@@ -83,7 +91,6 @@ public class StockInService {
         stockInForm.setNote(requestDTO.getNote() != null ? requestDTO.getNote() : "Nhập hàng");
 
         for (ProductInRequest productRequest : requestDTO.getProducts()) {
-
             Supplier supplier = supplierRepository.findByName(productRequest.getSupplierName())
                     .orElseGet(() -> {
                         Supplier newSupplier = new Supplier();
@@ -104,6 +111,8 @@ public class StockInService {
                         try {
                             String qrPath = "uploads/qrcode/" + savedProduct.getProductCode() + ".png";
                             QRCodeGeneratorUtil.generateQRCodeFile(savedProduct.getProductCode(), qrPath);
+                            savedProduct.setQrCode(qrPath);
+                             productRepository.save(savedProduct); // Lưu lại với qrCode
                         } catch (Exception e) {
                             throw new RuntimeException("Lỗi khi tạo mã QR cho sản phẩm: " + savedProduct.getProductCode(), e);
                         }
@@ -136,6 +145,12 @@ public class StockInService {
                     });
             inventory.setQuantity(inventory.getQuantity() + productRequest.getQuantity());
             inventoryRepository.save(inventory);
+
+            // Kiểm tra tồn kho thấp
+            if (settingService.isLowStockAlertEnabled() && inventory.getQuantity() <= product.getMinStock()) {
+                String[] emails = settingService.getLowStockAlertEmails().split(",");
+                emailService.sendLowStockAlert(emails, product.getName(), inventory.getQuantity());
+            }
         }
 
         return requestDTO;

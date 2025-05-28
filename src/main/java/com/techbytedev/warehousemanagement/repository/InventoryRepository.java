@@ -41,5 +41,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Integer> {
     @Query("SELECT SUM(i.quantity) FROM Inventory i WHERE i.product.productCode = :productCode")
     Integer sumQuantityByProductCode(@Param("productCode") String productCode);
 
+    boolean existsByProductId(Integer productId);
+
 }
 

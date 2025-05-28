@@ -60,7 +60,7 @@ public class AdminUserController {
     }
 
     @PostMapping
-    @PreAuthorize("@permissionChecker.hasPermission(authentication, '/api/admin/users/**', 'POST')")
+    @PreAuthorize("@permissionChecker.hasPermission(authentication, '/api/admin/users', 'POST')")
     public UserResponse createUser(@RequestBody UserCreateRequest request) {
         return userService.createUser(request);
     }

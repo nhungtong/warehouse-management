@@ -12,11 +12,10 @@ import java.util.Optional;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
-    long count();
-    List<Product> findAll();
     Optional<Product> findByProductCode(String productCode);
     Optional<Product> findByName(String name);
     Optional<Product> findByUnit(String unit);
+
     @Query("SELECT p FROM Product p WHERE p.expirationDate BETWEEN :startDate AND :endDate")
     List<Product> findByExpirationDateBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
@@ -26,4 +25,3 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
            "GROUP BY p.id")
     List<Product> findSlowMovingProducts(@Param("oneMonthAgo") LocalDateTime oneMonthAgo);
 }
-

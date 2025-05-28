@@ -1,6 +1,7 @@
 package com.techbytedev.warehousemanagement.controller;
 
 import com.techbytedev.warehousemanagement.dto.response.ProductReportDTO;
+import com.techbytedev.warehousemanagement.dto.response.ResultPaginationDTO;
 import com.techbytedev.warehousemanagement.dto.response.WarehouseReportDTO;
 import com.techbytedev.warehousemanagement.service.ReportService;
 import org.apache.poi.ss.usermodel.*;
@@ -25,8 +26,11 @@ public class ReportController {
     private ReportService reportService;
 
     @GetMapping("/products")
-    public List<ProductReportDTO> getProductReport(@RequestParam(required = false) String filterType) {
-        return reportService.getProductReport(filterType);
+    public ResultPaginationDTO getProductReport(
+            @RequestParam(required = false) String filterType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return reportService.getProductReport(filterType, page, size);
     }
 
     @GetMapping("/products/export")
@@ -41,12 +45,14 @@ public class ReportController {
     }
 
     @GetMapping("/warehouse")
-    public List<WarehouseReportDTO> getWarehouseReport(
+    public ResultPaginationDTO getWarehouseReport(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         if (startDate == null) startDate = LocalDateTime.of(2025, 1, 1, 0, 0);
         if (endDate == null) endDate = LocalDateTime.now();
-        return reportService.getWarehouseReport(startDate, endDate);
+        return reportService.getWarehouseReport(startDate, endDate, page, size);
     }
 
     @GetMapping("/warehouse/export")
@@ -55,13 +61,15 @@ public class ReportController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) throws IOException {
         if (startDate == null) startDate = LocalDateTime.of(2025, 1, 1, 0, 0);
         if (endDate == null) endDate = LocalDateTime.now();
-        List<WarehouseReportDTO> report = reportService.getWarehouseReport(startDate, endDate);
+        List<?> rawList = reportService.getWarehouseReport(startDate, endDate, 0, Integer.MAX_VALUE).getContent();
+        List<WarehouseReportDTO> report = rawList.stream()
+                .filter(WarehouseReportDTO.class::isInstance)
+                .map(WarehouseReportDTO.class::cast)
+                .toList();
 
-        // Tạo file Excel
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Báo cáo kho hàng");
 
-        // Tiêu đề
         Row headerRow = sheet.createRow(0);
         String[] headers = {"Mã hàng", "Tên Sản Phẩm", "Số lượng đầu kỳ", "Tổng nhập trong kỳ", "Tổng xuất trong kỳ", "Tồn kho cuối kỳ"};
         for (int i = 0; i < headers.length; i++) {
@@ -69,19 +77,17 @@ public class ReportController {
             cell.setCellValue(headers[i]);
         }
 
-        // Dữ liệu
         int rowNum = 1;
         for (WarehouseReportDTO dto : report) {
             Row row = sheet.createRow(rowNum++);
             row.createCell(0).setCellValue(dto.getProductCode());
-            row.createCell(1).setCellValue(dto.getProductName() != null ? dto.getProductName() : "Không có tên"); // Thêm cột tên sản phẩm
+            row.createCell(1).setCellValue(dto.getProductName() != null ? dto.getProductName() : "Không có tên");
             row.createCell(2).setCellValue(dto.getOpeningStock());
             row.createCell(3).setCellValue(dto.getTotalIn());
             row.createCell(4).setCellValue(dto.getTotalOut());
             row.createCell(5).setCellValue(dto.getClosingStock());
         }
 
-        // Xuất file
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         workbook.write(out);
         workbook.close();

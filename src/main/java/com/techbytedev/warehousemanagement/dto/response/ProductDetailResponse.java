@@ -8,6 +8,7 @@ public class ProductDetailResponse {
     private String supplierName;
     private String locationName;
     private Integer quantity;
+    private String qrCode;
 
     public ProductDetailResponse(String productCode, String productName, String unit, String supplierName, String locationName, Integer quantity) {
         this.productCode = productCode;
@@ -16,6 +17,16 @@ public class ProductDetailResponse {
         this.supplierName = supplierName;
         this.locationName = locationName;
         this.quantity = quantity;
+    }
+
+    public ProductDetailResponse(String productCode, String productName, String unit, String supplierName, String locationName, Integer quantity, String qrCode) {
+        this.productCode = productCode;
+        this.productName = productName;
+        this.unit = unit;
+        this.supplierName = supplierName;
+        this.locationName = locationName;
+        this.quantity = quantity;
+        this.qrCode = qrCode;
     }
 
     public Integer getQuantity() {

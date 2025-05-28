@@ -16,18 +16,26 @@ public class StockOutService {
     private final ProductRepository productRepository;
     private final StockOutFormRepository stockOutFormRepository;
     private final InventoryRepository inventoryRepository;
+    private final EmailService emailService;
+    private final SettingService settingService;
 
-    public StockOutService(StockOutDetailRepository stockOutDetailRepository, UserRepository userRepository, ProductRepository productRepository, StockOutFormRepository stockOutFormRepository, InventoryRepository inventoryRepository) {
+    public StockOutService(StockOutDetailRepository stockOutDetailRepository, UserRepository userRepository,
+                           ProductRepository productRepository, StockOutFormRepository stockOutFormRepository,
+                           InventoryRepository inventoryRepository, EmailService emailService,
+                           SettingService settingService) {
         this.stockOutDetailRepository = stockOutDetailRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
         this.stockOutFormRepository = stockOutFormRepository;
         this.inventoryRepository = inventoryRepository;
+        this.emailService = emailService;
+        this.settingService = settingService;
     }
 
     public long getTotalStockOut() {
         return stockOutDetailRepository.getTotalQuantity();
     }
+
     @Transactional
     public void handleStockOut(StockOutRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
@@ -55,6 +63,12 @@ public class StockOutService {
             inventory.setQuantity(inventory.getQuantity() - p.getQuantity());
             inventoryRepository.save(inventory);
 
+            // Kiểm tra tồn kho thấp
+            if (settingService.isLowStockAlertEnabled() && inventory.getQuantity() <= product.getMinStock()) {
+                String[] emails = settingService.getLowStockAlertEmails().split(",");
+                emailService.sendLowStockAlert(emails, product.getName(), inventory.getQuantity());
+            }
+
             StockOutDetail detail = new StockOutDetail();
             detail.setStockOutForm(stockOutForm);
             detail.setProduct(product);
@@ -62,5 +76,4 @@ public class StockOutService {
             stockOutDetailRepository.save(detail);
         }
     }
-
 }
