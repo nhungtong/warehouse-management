@@ -30,7 +30,7 @@ public class StockInForm {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "stockInForm", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "stockInForm", fetch = FetchType.EAGER)
     private List<StockInDetail> stockInDetails;
 
     public List<StockInDetail> getStockInDetails() {

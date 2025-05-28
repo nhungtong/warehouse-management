@@ -96,8 +96,10 @@ public class StockOutService {
 
     private StockOutDetailDTO toDetailDTO(StockOutDetail detail) {
         StockOutDetailDTO dto = new StockOutDetailDTO();
+        dto.setProductCode(detail.getProduct().getProductCode());
         dto.setProductName(detail.getProduct().getName());
         dto.setQuantity(detail.getQuantity());
+        dto.setUnit(detail.getProduct().getUnit());
         return dto;
     }
     public Page<StockOutFormDTO> getAllForms(Pageable pageable) {

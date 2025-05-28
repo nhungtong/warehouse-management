@@ -91,7 +91,7 @@ public class StockInService {
         stockInForm.setCreatedAt(LocalDateTime.now());
         stockInForm.setInvoiceFile(invoiceFilePath);
         stockInForm.setNote(requestDTO.getNote() != null ? requestDTO.getNote() : "Nhập hàng");
-
+        stockInFormRepository.save(stockInForm);
         for (ProductInRequest productRequest : requestDTO.getProducts()) {
             Supplier supplier = supplierRepository.findByName(productRequest.getSupplierName())
                     .orElseGet(() -> {
@@ -99,7 +99,6 @@ public class StockInService {
                         newSupplier.setName(productRequest.getSupplierName());
                         return supplierRepository.save(newSupplier);
                     });
-            stockInFormRepository.save(stockInForm);
             Product product = productRepository.findByProductCode(productRequest.getProductCode())
                     .orElseGet(() -> {
                         Product newProduct = new Product();
@@ -171,6 +170,7 @@ public class StockInService {
         dto.setProductName(detail.getProduct().getName());
         dto.setSupplierName(detail.getProduct().getSupplier().getName());
         dto.setQuantity(detail.getQuantity());
+        dto.setUnit(detail.getProduct().getUnit());
         dto.setUnitPrice(detail.getUnitPrice());
         dto.setLocationName(detail.getLocation().getName());
         return dto;

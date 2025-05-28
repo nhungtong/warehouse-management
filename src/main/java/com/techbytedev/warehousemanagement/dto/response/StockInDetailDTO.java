@@ -8,9 +8,18 @@ import java.math.BigDecimal;
 public class StockInDetailDTO {
     private String productName;
     private String supplierName;
+    private String unit;
     private Integer quantity;
     private BigDecimal unitPrice;
     private String locationName;
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
 
     public String getSupplierName() {
         return supplierName;

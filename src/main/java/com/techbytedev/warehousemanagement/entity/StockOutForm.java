@@ -32,7 +32,7 @@ public class StockOutForm {
     @Column(nullable = false)
     private String note;
 
-    @OneToMany(mappedBy = "stockOutForm", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "stockOutForm", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<StockOutDetail> stockOutDetails;
 
     public List<StockOutDetail> getStockOutDetails() {
