@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "stock_in_forms")
@@ -33,6 +34,16 @@ public class StockInForm {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @OneToMany(mappedBy = "stockInForm", fetch = FetchType.LAZY)
+    private List<StockInDetail> stockInDetails;
+
+    public List<StockInDetail> getStockInDetails() {
+        return stockInDetails;
+    }
+
+    public void setStockInDetails(List<StockInDetail> stockInDetails) {
+        this.stockInDetails = stockInDetails;
+    }
 
     @Column(nullable = false)
     private String note;
